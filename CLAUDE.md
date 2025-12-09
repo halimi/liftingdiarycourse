@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Documentation First
+
+**IMPORTANT:** Before generating any code, ALWAYS check the `/docs` directory for relevant documentation. The docs contain project-specific patterns, API references, and implementation guidelines that must be followed. Read the appropriate docs file before writing or modifying code.
+
+- /docs/ui.md
+
 ## Commands
 
 ```bash
@@ -18,12 +24,14 @@ No test suite is currently configured.
 This is a Next.js 16 application using React 19, TypeScript, and Tailwind CSS 4.
 
 **App Router Structure:**
+
 - `app/layout.tsx` - Root layout with ClerkProvider and Geist font configuration
 - `app/page.tsx` - Home page (server component by default)
 - `app/globals.css` - Global styles with Tailwind and dark mode CSS variables
 - `middleware.ts` - Clerk authentication middleware using `clerkMiddleware()`
 
 **Key Patterns:**
+
 - Uses Next.js App Router (not Pages Router)
 - Server Components by default
 - Path alias: `@/*` maps to project root
@@ -32,12 +40,14 @@ This is a Next.js 16 application using React 19, TypeScript, and Tailwind CSS 4.
 - Image optimization with `next/image`
 
 **TypeScript:**
+
 - Strict mode enabled
 - Use `import type` for type-only imports
 
 **Authentication (Clerk):**
+
 - `ClerkProvider` wraps the app in `app/layout.tsx`
 - `clerkMiddleware()` from `@clerk/nextjs/server` in `middleware.ts`
 - Use `auth()` from `@clerk/nextjs/server` (async) for server-side auth
 - Components: `<SignInButton>`, `<SignUpButton>`, `<UserButton>`, `<SignedIn>`, `<SignedOut>`
-- Environment variables in `.env.local`: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`
+- Environment variables in `.env`: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`
