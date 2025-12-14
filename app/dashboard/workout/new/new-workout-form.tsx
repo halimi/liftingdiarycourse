@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,6 +27,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function NewWorkoutForm() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,15 +39,29 @@ export function NewWorkoutForm() {
   });
 
   async function onSubmit(values: FormValues) {
-    await createWorkoutAction({
+    setError(null);
+
+    const result = await createWorkoutAction({
       name: values.name || undefined,
       startedAt: new Date(values.startedAt),
     });
+
+    if (result.success) {
+      router.push(`/dashboard?date=${result.data.date}`);
+    } else {
+      setError(result.error);
+    }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-md">
+        {error && (
+          <div className="rounded-md bg-red-50 dark:bg-red-950 p-4">
+            <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+          </div>
+        )}
+
         <FormField
           control={form.control}
           name="name"

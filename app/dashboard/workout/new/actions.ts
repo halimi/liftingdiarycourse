@@ -3,7 +3,6 @@
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { createWorkout } from "@/data/workouts";
 
@@ -14,21 +13,35 @@ const createWorkoutSchema = z.object({
 
 type CreateWorkoutInput = z.infer<typeof createWorkoutSchema>;
 
-export async function createWorkoutAction(input: CreateWorkoutInput) {
-  const { userId } = await auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
+type ActionResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+export async function createWorkoutAction(
+  input: CreateWorkoutInput
+): Promise<ActionResult<{ id: string; date: string }>> {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const validated = createWorkoutSchema.safeParse(input);
+    if (!validated.success) {
+      return { success: false, error: validated.error.message };
+    }
+
+    const workout = await createWorkout({
+      userId,
+      name: validated.data.name || undefined,
+      startedAt: validated.data.startedAt,
+    });
+
+    const dateParam = format(validated.data.startedAt, "yyyy-MM-dd");
+    revalidatePath("/dashboard");
+
+    return { success: true, data: { id: workout.id, date: dateParam } };
+  } catch (error) {
+    return { success: false, error: "Failed to create workout" };
   }
-
-  const validated = createWorkoutSchema.parse(input);
-
-  await createWorkout({
-    userId,
-    name: validated.name || undefined,
-    startedAt: validated.startedAt,
-  });
-
-  const dateParam = format(validated.startedAt, "yyyy-MM-dd");
-  revalidatePath("/dashboard");
-  redirect(`/dashboard?date=${dateParam}`);
 }
