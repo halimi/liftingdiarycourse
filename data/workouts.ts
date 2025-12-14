@@ -33,3 +33,48 @@ export async function getWorkoutsByDate(userId: string, date: Date) {
 export type WorkoutWithExercises = Awaited<
   ReturnType<typeof getWorkoutsByDate>
 >[number];
+
+export async function createWorkout(data: {
+  userId: string;
+  name?: string;
+  startedAt: Date;
+}) {
+  const [workout] = await db
+    .insert(schema.workouts)
+    .values(data)
+    .returning();
+
+  return workout;
+}
+
+export async function getWorkoutById(userId: string, workoutId: string) {
+  const [workout] = await db
+    .select()
+    .from(schema.workouts)
+    .where(
+      and(
+        eq(schema.workouts.id, workoutId),
+        eq(schema.workouts.userId, userId)
+      )
+    );
+  return workout;
+}
+
+export async function updateWorkout(
+  userId: string,
+  workoutId: string,
+  data: { name?: string; startedAt?: Date }
+) {
+  const [workout] = await db
+    .update(schema.workouts)
+    .set({ ...data, updatedAt: new Date() })
+    .where(
+      and(
+        eq(schema.workouts.id, workoutId),
+        eq(schema.workouts.userId, userId)
+      )
+    )
+    .returning();
+
+  return workout;
+}
