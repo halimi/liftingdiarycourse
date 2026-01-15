@@ -78,3 +78,28 @@ export async function updateWorkout(
 
   return workout;
 }
+
+export async function getWorkoutWithExercises(
+  userId: string,
+  workoutId: string
+) {
+  const workout = await db.query.workouts.findFirst({
+    where: and(
+      eq(schema.workouts.id, workoutId),
+      eq(schema.workouts.userId, userId)
+    ),
+    with: {
+      workoutExercises: {
+        orderBy: (workoutExercises, { asc }) => [asc(workoutExercises.order)],
+        with: {
+          exercise: true,
+          sets: {
+            orderBy: (sets, { asc }) => [asc(sets.setNumber)],
+          },
+        },
+      },
+    },
+  });
+
+  return workout;
+}
